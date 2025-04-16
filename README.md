@@ -11,6 +11,7 @@ This project presents an IoT-based solution for real-time energy monitoring and 
 - **Web Interface**: A user-friendly Flask web application that displays energy consumption plots and anomaly reports for each building.
 - **Anomaly Detection**: Implements a Random Forest classifier to identify unusual patterns in energy usage, providing precision and recall metrics for performance evaluation.
 
+## Project Structure
 
 - `IOT_project_modelling.ipynb`: Contains scripts for generating synthetic energy consumption data.
 - `main.py`: MicroPython code for ESP32 devices to publish data via MQTT.
@@ -36,7 +37,7 @@ This project presents an IoT-based solution for real-time energy monitoring and 
 
 Navigate to the `IOT_project_modelling.ipynb` and run the script to generate synthetic data and get models and scalers:
 
-This will create a CSV file containing the simulated energy consumption data.
+This will create a CSV file containing the simulated energy consumption data and will save te models and scalers so that u can download and use then in backend server.
 
 ### Deploying the Flask Server
 
