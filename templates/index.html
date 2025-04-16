@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Anomaly Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+        #sidebar {
+            width: 250px;
+            background-color: #f4f4f4;
+            padding: 1rem;
+            border-right: 1px solid #ccc;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        #content {
+            flex-grow: 1;
+            padding: 1.5rem;
+        }
+        button {
+            display: block;
+            width: 100%;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        canvas {
+            max-width: 100%;
+            height: 400px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 0.5rem;
+            text-align: center;
+        }
+        th {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <h3>Buildings</h3>
+            {% if building_map %}
+                {% for id, name in building_map.items() %}
+                    <button onclick='loadBuilding({{ id }}, {{ name|tojson }})'>{{ name }}</button>
+                {% endfor %}
+            {% else %}
+                <p>No buildings found.</p>
+            {% endif %}
+
+    </div>
+    <div id="content">
+        <h2 id="title">Select a building</h2>
+        <canvas id="readingChart"></canvas>
+        <h3>Anomalies</h3>
+        <table id="anomalyTable">
+            <thead>
+                <tr>
+                    <th>Meter Reading</th>
+                    <th>Time</th>
+                    <th>Month</th>
+                    <th>Day</th>
+                    <th>Weekend</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        let chart;
+        function loadBuilding(building_id, building_name) {
+            fetch(`/data/${building_id}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById("title").innerText = `Building: ${building_name}`;
+                    
+                    // Plot readings
+                    const labels = data.map(d => `D${d.day}T${d.time}`);
+                    const readings = data.map(d => d.meter_reading);
+                    const ctx = document.getElementById("readingChart").getContext("2d");
+
+                    if (chart) chart.destroy();
+                    chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Meter Reading',
+                                data: readings,
+                                borderColor: 'blue',
+                                borderWidth: 2,
+                                fill: false
+                            }]
+                        }
+                    });
+
+                    // Populate anomaly table
+                    const tbody = document.querySelector("#anomalyTable tbody");
+                    tbody.innerHTML = "";
+                    data.filter(d => d.prediction === 1).forEach(d => {
+                        let row = `<tr>
+                            <td>${d.meter_reading}</td>
+                            <td>${d.time}</td>
+                            <td>${d.month}</td>
+                            <td>${d.day}</td>
+                            <td>${d.weekend}</td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+                });
+        }
+    </script>
+</body>
+</html>
